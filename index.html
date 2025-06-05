@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Access Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .form-title {
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a4a4a;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 0.25rem;
+        }
+
+        .checkbox-group label {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #666;
+        }
+
+        .privacy-link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #4a90e2;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .privacy-link:hover {
+            text-decoration: underline;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            display: none;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .form-title {
+                font-size: 1.25rem;
+            }
+
+            input, button {
+                padding: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="formOverlay">
+        <div class="form-container">
+            <h2 class="form-title">Toegang tot Video Content</h2>
+            <form id="accessForm" novalidate>
+                <div class="form-group">
+                    <label for="name">Naam</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mailadres</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="consent" name="consent" required>
+                    <label for="consent">
+                        Ik ga akkoord met de verwerking van mijn gegevens en ontvang graag e-mails over relevante updates. 
+                        Ik kan me op elk moment uitschrijven.
+                    </label>
+                </div>
+                <button type="submit" id="submitButton">Toegang Krijgen</button>
+                <div class="error-message" id="errorMessage"></div>
+                <a href="/privacy.html" class="privacy-link">Bekijk onze privacyverklaring</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="video-container" id="videoContainer">
+        <video controls>
+            <source src="video.mp4" type="video/mp4">
+            Je browser ondersteunt de video tag niet.
+        </video>
+    </div>
+
+    <script>
+        const form = document.getElementById('accessForm');
+        const formOverlay = document.getElementById('formOverlay');
+        const videoContainer = document.getElementById('videoContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const submitButton = document.getElementById('submitButton');
+
+        // Client-side validation
+        function validateForm() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const consent = document.getElementById('consent').checked;
+
+            if (!name || !email || !consent) {
+                errorMessage.textContent = 'Vul alle velden in en geef toestemming voor de verwerking van je gegevens.';
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            if (!isValidEmail(email)) {
+                errorMessage.textContent = 'Vul een geldig e-mailadres in.';
+                errorMessage.style.display = 'block';
+                return false;
+            }
+
+            return true;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'Bezig met verzenden...';
+            
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                consent: document.getElementById('consent').checked
+            };
+
+            try {
+                const response = await fetch('https://script.google.com/macros/s/AKfycbyoqMGMyDH-ntmZ4kNZzwfImeAB5wz2ia_qkiI_ptrQ97VkmpvIqEBVI548UNE8x0uEcA/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                // Hide form and show video on success
+                formOverlay.classList.add('hidden');
+                videoContainer.style.display = 'block';
+                
+            } catch (error) {
+                errorMessage.textContent = 'Er is een fout opgetreden bij het verzenden. Probeer het later opnieuw.';
+                errorMessage.style.display = 'block';
+                console.error('Error:', error);
+                submitButton.disabled = false;
+                submitButton.textContent = 'Toegang Krijgen';
+            }
+        });
+
+        // Real-time validation
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (validateForm()) {
+                    errorMessage.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
